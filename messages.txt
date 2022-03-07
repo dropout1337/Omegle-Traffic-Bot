@@ -1,0 +1,2 @@
+Here is a message with a new line<newline>https://www.youtube.com/watch?v=LIKiEkENKJ0
+Here is a very cool message without a new line - https://www.youtube.com/watch?v=LIKiEkENKJ0
