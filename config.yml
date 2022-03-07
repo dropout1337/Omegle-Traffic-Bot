@@ -1,0 +1,23 @@
+proxy:
+  type: "http" # http/socks4/socks5
+
+omegle:
+  trigger_typing: false # Weather to make the bot type before sending the message
+  video: false # Video area
+  text: true # Text area
+  disconnect_after: 3.5 # How long until disconnect after the message has been sent
+  server: null # Set a custom server, don't touch if you don't know what it is
+
+filters:
+  topics: [] # topic to queue inside of ; example ["youtube", "tiktok"]
+
+events:
+  wait_for_message: false # wait for the strager to send a message
+  wait_for_typing: false # wait for the strager to start typing
+  timeout: 5 # amount of seconds before it moves on
+
+message:
+  emoji: true # add a random emoji after your message
+  string: false # add random string after your message
+  prefix: "" # add a set string before your message
+  suffix: "" # add a set string after your message
