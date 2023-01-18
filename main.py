@@ -103,9 +103,9 @@ class Omegle():
         # ill make cc dynamic later :)
         
         if self.camera:
-            url = "https://%s.omegle.com/start?caps=recaptcha2,t&firstevents=1&spid=&randid=%s&lang=en&camera=OBS Virtual Camera&webrtc=1&cc=3fcc120870f1c6a09ebd7d864828c9da604493b3" % (server, user_id)
+            url = "https://%s.omegle.com/start?caps=recaptcha2,t3&firstevents=1&spid=&randid=%s&lang=en&camera=OBS Virtual Camera&webrtc=1&cc=3fcc120870f1c6a09ebd7d864828c9da604493b3" % (server, user_id)
         else:
-            url = "https://%s.omegle.com/start?caps=recaptcha2,t&firstevents=1&spid=&randid=%s&lang=en&cc=3fcc120870f1c6a09ebd7d864828c9da604493b3" % (server, user_id)
+            url = "https://%s.omegle.com/start?caps=recaptcha2,t3&firstevents=1&spid=&randid=%s&lang=en&cc=3fcc120870f1c6a09ebd7d864828c9da604493b3" % (server, user_id)
 
         if self.config["filters"]["topics"] != []:
             url += "&topics=%s" % (parse.quote_plus(str(self.config["filters"]["topics"]).replace(" ", "")))
