@@ -8,7 +8,7 @@ import emoji_list
 from urllib import parse
 from random import choice
 from itertools import cycle
-from threading import Thread
+from concurrent.futures import ThreadPoolExecutor
 
 if sys.platform == "linux":
     os.system("clear")
@@ -43,6 +43,22 @@ class Omegle():
     def __init__(self):
         self.logging = Log()
 
+        self.headers = headers = {
+            "authority": "waw1.omegle.com",
+            "accept": "*/*",
+            "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+            "origin": "https://www.omegle.com",
+            "referer": "https://www.omegle.com/",
+            "sec-ch-ua": "\"Not_A Brand\";v=\"99\", \"Brave\";v=\"109\", \"Chromium\";v=\"109\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "same-site",
+            "sec-gpc": "1",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36",
+        }
+
         with open("config.yml") as f:
             self.config = yaml.safe_load(f.read())
 
@@ -63,13 +79,14 @@ class Omegle():
         self.disconnect_after = self.config["omegle"]["disconnect_after"]
         self.proxy_type = self.config["proxy"]["type"]
     
-        with open("proxies.txt", encoding="utf-8") as f:
-            self.proxies = [i.strip() for i in f]
-
         with open("messages.txt", encoding="utf-8") as f:
             self.messages = [i.strip() for i in f]
 
+        with open("proxies.txt", encoding="utf-8") as f:
+            self.proxies = [i.strip() for i in f]
+
         self.servers = ["front13", "front32", "front12", "front2", "front18", "front29", "front7", "front45", "front44", "front11", "front37", "front46", "front23", "front35", "front19", "front8", "front17", "front47", "front14", "front25", "front22", "front31", "front34", "front48", "front40", "front27", "front33", "front5", "front24", "front10", "front26", "front20", "front42", "front6", "front41", "front39", "front30", "front38", "front36", "front3", "front28", "front4", "front9", "front21", "front15", "front43", "front16"]
+        self.an_servers = ["waw1.omegle.com", "waw2.omegle.com", "waw4.omegle.com", "waw3.omegle.com"]
 
         self.proxy = cycle(self.proxies)
         self.message = cycle(self.messages)
@@ -89,6 +106,8 @@ class Omegle():
             "https": "%s://%s" % (self.proxy_type, proxy)
         })
 
+        session.headers.update(self.headers)
+
         if self.server == None:
             server = choice(self.servers)
         else:
@@ -96,16 +115,19 @@ class Omegle():
 
         return session, server
 
+    def get_cc(self, session: requests.Session):
+        response = session.post("https://%s/check" % (choice(self.an_servers)))
+        return response.text
+
     def create_client(self):
         session, server = self.create_session()
         user_id = os.urandom(8).hex()[:7]
+        cc = self.get_cc(session)
 
-        # ill make cc dynamic later :)
-        
         if self.camera:
-            url = "https://%s.omegle.com/start?caps=recaptcha2,t3&firstevents=1&spid=&randid=%s&lang=en&camera=OBS Virtual Camera&webrtc=1&cc=3fcc120870f1c6a09ebd7d864828c9da604493b3" % (server, user_id)
+            url = "https://%s.omegle.com/start?caps=recaptcha2,t3&firstevents=1&spid=&randid=%s&lang=en&camera=OBS Virtual Camera&webrtc=1&cc=%s" % (server, user_id, cc)
         else:
-            url = "https://%s.omegle.com/start?caps=recaptcha2,t3&firstevents=1&spid=&randid=%s&lang=en&cc=3fcc120870f1c6a09ebd7d864828c9da604493b3" % (server, user_id)
+            url = "https://%s.omegle.com/start?caps=recaptcha2,t3&firstevents=1&spid=&randid=%s&cc=%s&lang=en" % (server, user_id, cc)
 
         if self.config["filters"]["topics"] != []:
             url += "&topics=%s" % (parse.quote_plus(str(self.config["filters"]["topics"]).replace(" ", "")))
@@ -116,7 +138,7 @@ class Omegle():
             self.logging.info("Created client %s(%s%s%s)" % (self.logging.colours["reset"], self.logging.colours["info"], response.json()["clientID"], self.logging.colours["reset"]))
             return session, server, response.json()["clientID"]
         else:
-            pass#self.logging.error("Failed to create client")
+            self.logging.error(response.text)
             self.failed += 1
             return False
 
@@ -201,13 +223,15 @@ class Omegle():
             self.send(session, server, client_id)
             time.sleep(self.disconnect_after)
             self.disconnect(session, server, client_id)
-        except Exception:
-            pass
+        except Exception as e:
+            #self.logging.error(e)
+            self.failed += 1
 
     def run(self):
-        Thread(target=self.title_task).start()
-        while True:
-            Thread(target=self.task).start()
+        with ThreadPoolExecutor(max_workers=1000) as self.executor:
+            self.executor.submit(self.title_task)
+            while True:
+                self.executor.submit(self.task)
             
 if __name__ == "__main__":
     client = Omegle()
