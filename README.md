@@ -7,6 +7,12 @@
   <img src="https://img.shields.io/github/license/dropout1337/Omegle-Traffic-Bot.svg?style=for-the-badge"/>
 </p>
   
+--------------------------------------
+
+# UP-TO-DATE / PAID VERSION
+(faster than public, up to date)
+https://dropout.mysellix.io/product/63c908b1dbb85
+  
 ---------------------------------------
   
 <br/>
